@@ -1,0 +1,9 @@
+streamlit
+mysql-connector-python
+pandas
+requests
+beautifulsoup4
+schedule
+datetime
+threading
+time
