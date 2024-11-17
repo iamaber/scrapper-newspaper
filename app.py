@@ -37,7 +37,7 @@ st.title("News Article Scraper")
 # User inputs for start date, end date, and site name
 start_date = st.date_input("Start Date")
 end_date = st.date_input("End Date")
-site_name = st.selectbox("Select News Site", ["Prothom Alo", "BDNews24", "The Daily Star"])
+site_name = st.selectbox("Select News Site", ["Prothom Alo", "Bangladesh Protidin"])
 
 # Button to fetch data
 if st.button("Fetch Data"):
