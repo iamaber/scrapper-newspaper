@@ -5,3 +5,4 @@ sqlalchemy
 requests
 beautifulsoup4
 news-please
+newspaper4k[bn]

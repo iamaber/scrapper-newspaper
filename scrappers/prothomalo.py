@@ -5,13 +5,11 @@ from newsplease import NewsPlease
 from datetime import datetime, timedelta
 
 def generate_date_list(start_date_str, end_date_str):
-    """Generate a list of dates between start_date and end_date."""
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
     return [(start_date + timedelta(days=x)).strftime('%Y-%m-%d') for x in range((end_date - start_date).days + 1)]
 
 def fetch_sitemap_urls(date_list):
-    """Fetch URLs from the sitemap for each date in the date list."""
     locs = []
     dates = []
     for date_str in date_list:
@@ -30,7 +28,6 @@ def fetch_sitemap_urls(date_list):
     return pd.DataFrame({'URL': locs, 'Last Modified Date': dates})
 
 def scrape_articles(data_links):
-    """Scrape articles from the URLs and return a DataFrame with the required information."""
     articles_data = []
     for index, row in data_links.iterrows():
         page = row['URL']
@@ -63,16 +60,13 @@ def scrap_prothomalo(start_date, end_date):
     articles_df = scrape_articles(data_links)
     
     return articles_df
-    
 
-    
-    
-start_date = '2024-01-01'
-end_date = '2024-06-27'
+# start_date = '2024-06-01'
+# end_date = '2024-06-01'
 
-articles_df = scrap_prothomalo(start_date, end_date)
-# Save to CSV
-articles_df.to_csv('data.csv', index=False, encoding='utf-8')
+# articles_df = scrap_prothomalo(start_date, end_date)
+# # Save to CSV
+# articles_df.to_csv('data.csv', index=False, encoding='utf-8')
     
-# Load the dataset to verify
-dataset = pd.read_csv("data.csv")
+# # Load the dataset to verify
+# dataset = pd.read_csv("data.csv")
