@@ -1,9 +1,7 @@
 streamlit
 mysql-connector-python
 pandas
+sqlalchemy
 requests
 beautifulsoup4
-schedule
-datetime
-threading
-time
+news-please

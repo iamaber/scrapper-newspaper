@@ -1,13 +1,13 @@
-# app.py
 import streamlit as st
 import mysql.connector
 import pandas as pd
 from datetime import datetime, timedelta
 import threading
 import time
-from jugantor import scrape_jugantor
 from sqlalchemy import create_engine
 import traceback
+
+from jugantor import scrape_jugantor
 
 # Database configuration
 DB_CONFIG = {
