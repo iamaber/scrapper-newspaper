@@ -1,6 +1,7 @@
 from database_handler import ArticleDatabase
 from scrappers.prothomalo import scrap_prothomalo
 from scrappers.bangladeshProtidin import scrap_bangladeshProtidin
+from scrappers.jugantor import scrap_jugantor
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timedelta
 import pandas as pd
@@ -54,6 +55,7 @@ def scrape_source(source_func, start_date, end_date, source_name):
 
 def parallel_scrape_and_store(start_date, end_date, max_workers=4, chunks_per_source=3):
     scrapers = [
+        (scrap_jugantor, 'Jugantor'),
         (scrap_prothomalo, 'Prothom Alo'),
         (scrap_bangladeshProtidin, 'Bangladesh Protidin')
     ]
@@ -106,7 +108,7 @@ def parallel_scrape_and_store(start_date, end_date, max_workers=4, chunks_per_so
 
 def main():
     start_date = '2024-01-01'
-    end_date = '2024-05-31'
+    end_date = '2024-01-31'
     print(f"Starting parallel scraping from {start_date} to {end_date}")
     
     results = parallel_scrape_and_store(
