@@ -23,7 +23,6 @@ class ArticleDatabase:
             print(f"Error connecting to MySQL Database: {e}")
             
     def create_tables(self):
-        """Create necessary tables if they don't exist"""
         try:
             cursor = self.connection.cursor()
             
@@ -49,17 +48,23 @@ class ArticleDatabase:
         finally:
             cursor.close()
             
-    def store_articles(self, articles_df):
-        """Store articles from DataFrame to database"""
+    def store_articles(self, articles_df, source='Unknown'):
         try:
             cursor = self.connection.cursor()
             
             for _, row in articles_df.iterrows():
                 # Convert date string to datetime object if it's a string
-                if isinstance(row['Date Published'], str):
-                    date_published = datetime.strptime(row['Date Published'], '%Y-%m-%d %H:%M:%S')
-                else:
-                    date_published = row['Date Published']
+                date_published = row['Date Published']
+                if isinstance(date_published, str):
+                    try:
+                        date_published = datetime.strptime(date_published, '%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        # Try alternative date formats if the first one fails
+                        try:
+                            date_published = datetime.strptime(date_published, '%Y-%m-%d')
+                        except ValueError:
+                            print(f"Warning: Could not parse date {date_published}, using current datetime")
+                            date_published = datetime.now()
                 
                 # Insert query with parameterized values
                 insert_query = """
@@ -67,16 +72,20 @@ class ArticleDatabase:
                 (date_published, headline, article_body, article_link, article_site)
                 VALUES (%s, %s, %s, %s, %s)
                 """
-                
+    
                 values = (
                     date_published,
                     row['Headline'],
                     row['Article Body'],
                     row['Article Link'],
-                    row['Article Site']
+                    source
                 )
                 
-                cursor.execute(insert_query, values)
+                try:
+                    cursor.execute(insert_query, values)
+                except Error as e:
+                    print(f"Error inserting article {row['Headline']}: {e}")
+                    continue
                 
             self.connection.commit()
             print(f"Successfully stored {len(articles_df)} articles in the database")
@@ -87,16 +96,13 @@ class ArticleDatabase:
             cursor.close()
             
     def close_connection(self):
-        """Close the database connection"""
         if self.connection and self.connection.is_connected():
             self.connection.close()
             print("Database connection closed")
             
     def __enter__(self):
-        """Context manager entry"""
         self.connect()
         return self
         
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit"""
-        self.close_connection() 
+        self.close_connection()

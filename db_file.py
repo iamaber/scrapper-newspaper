@@ -14,7 +14,7 @@ DB_CONFIG = {
 }
 
 def split_date_range(start_date, end_date, chunks):
-    """Split the date range into smaller chunks for parallel processing"""
+    # Split the date range into smaller chunks for parallel processing
     start = datetime.strptime(start_date, '%Y-%m-%d')
     end = datetime.strptime(end_date, '%Y-%m-%d')
     total_days = (end - start).days + 1
@@ -33,7 +33,6 @@ def split_date_range(start_date, end_date, chunks):
     return date_ranges
 
 def scrape_source(source_func, start_date, end_date, source_name):
-    """Scrape articles from a specific source for a date range"""
     try:
         df = source_func(start_date, end_date)
         return {
@@ -41,7 +40,7 @@ def scrape_source(source_func, start_date, end_date, source_name):
             'data': df,
             'start_date': start_date,
             'end_date': end_date,
-            'count': len(df) if df is not None else 0
+            'count': len(df) if df is not None and not df.empty else 0
         }
     except Exception as e:
         print(f"Error scraping {source_name} for dates {start_date} to {end_date}: {e}")
@@ -54,8 +53,6 @@ def scrape_source(source_func, start_date, end_date, source_name):
         }
 
 def parallel_scrape_and_store(start_date, end_date, max_workers=4, chunks_per_source=3):
-    """Scrape multiple sources in parallel and store results"""
-    # Define scraping functions and their names
     scrapers = [
         (scrap_prothomalo, 'Prothom Alo'),
         (scrap_bangladeshProtidin, 'Bangladesh Protidin')
@@ -86,7 +83,7 @@ def parallel_scrape_and_store(start_date, end_date, max_workers=4, chunks_per_so
             result = future.result()
             source_name = result['source']
             
-            if not result['data'].empty:
+            if result['data'] is not None and not result['data'].empty:
                 if results[source_name].empty:
                     results[source_name] = result['data']
                 else:
@@ -96,40 +93,33 @@ def parallel_scrape_and_store(start_date, end_date, max_workers=4, chunks_per_so
                       f"({result['start_date']} to {result['end_date']})")
     
     # Store results in database
-    articles_stored = 0
+    total_stored = 0
     with ArticleDatabase(**DB_CONFIG) as db:
         db.create_tables()
         for source, df in results.items():
             if not df.empty:
                 print(f"\nStoring {len(df)} articles from {source}...")
                 db.store_articles(df, source=source)
-                articles_stored += len(df)
+                total_stored += len(df)
     
     return {source: len(df) for source, df in results.items()}
 
 def main():
-    start_date = '2024-06-01'
-    end_date = '2024-06-01'
-    
+    start_date = '2024-01-01'
+    end_date = '2024-05-31'
     print(f"Starting parallel scraping from {start_date} to {end_date}")
-    start_time = datetime.now()
     
-    # Run the parallel scraping and storing process
     results = parallel_scrape_and_store(
         start_date, 
         end_date,
-        max_workers=5,  # Adjust based on your CPU cores
-        chunks_per_source=3  # Adjust based on your date range
+        max_workers=4,  # Adjust based on your CPU cores
+        chunks_per_source=5  # Adjust based on your date range
     )
     
-    end_time = datetime.now()
     duration = end_time - start_time
     
     print("\nScraping completed!")
     print(f"Total time taken: {duration}")
-    print("\nSummary of articles scraped:")
-    for source, count in results.items():
-        print(f"{source}: {count} articles")
 
 if __name__ == "__main__":
     main()
